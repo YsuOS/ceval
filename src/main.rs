@@ -2,7 +2,12 @@ use std::env::args;
 
 fn main() {
     let args = args();
-    let num = args.skip(1).next().unwrap().parse::<u64>().unwrap();
+    let val = args.skip(1).next().unwrap();
+    let num = if val.len() > 1 && &val[..2] == "0x" {
+        u64::from_str_radix(&val[2..], 16).expect("Unexpected value")
+    } else {
+        val.parse::<u64>().expect("Unexpected value")
+    };
     print_num(num);
 }
 
@@ -10,25 +15,20 @@ fn print_num(num: u64) {
     println!("hexdecimal: {:x}", num);
     println!("   decimal: {}", num);
     println!("     octal: {:o}", num);
-    println!("    binary: {:b}", num);
-
-    print!("  bits set: ");
-    bits_set(num);
-    print!("\n");
+    println!("    binary: {:064b}", num);
+    let bs = get_bits_set(num);
+    println!("  bits set: {}", bs);
 }
 
-fn bits_set(mut num: u64) {
-    let mut result: Vec<u8> = Vec::new();
-    let mut n = 0;
+fn get_bits_set(mut num: u64) -> String {
+    let mut bs = String::new();
+    let mut n: u8 = 0;
     while num > 0 {
         if num & 1 == 1 {
-            result.push(n);
+            bs = format!("{} {}", n.to_string(), &bs);
         }
         n += 1;
         num = num >> 1;
     }
-
-    for c in result.iter().rev() {
-        print!("{} ", c);
-    }
+    bs
 }
